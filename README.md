@@ -25,16 +25,21 @@ This project implements an indexed **Healthcare Management System** in C++ using
 
 ```mermaid
 flowchart TD
-    M4["Role 4: Query Engine & Console Interface"]
-    M3["Role 3: Business Logic & Data Integrity"]
-    M2["Role 2: Indexing Engine & Inverted Lists"]
     M1["Role 1: Storage Engine & Space Reclamation"]
 
-    M4 --> M3
-    M4 --> M2
-    M3 <--> M2
-    M3 --> M1
-    M2 --> M1
+    subgraph Core ["Core Processing Layer"]
+        direction LR
+        M2["Role 2: Indexing Engine & Inverted Lists"]
+        M3["Role 3: Business Logic & Data Integrity"]
+        M2 <--> M3
+    end
+
+    M4["Role 4: Query Engine & Console Interface"]
+
+    M1 --> M2
+    M1 --> M3
+    M2 --> M4
+    M3 --> M4
 ```
 
 ---
