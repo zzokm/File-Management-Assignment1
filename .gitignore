@@ -1,0 +1,23 @@
+# Compiled binaries & objects
+*.exe
+*.o
+*.obj
+
+# Data & Database files
+data/
+*.bin
+*.txt
+*.pdf
+
+# Build artifacts
+build/
+CMakeCache.txt
+CMakeFiles/
+
+# Local implementation files (untracked for division proposal phase)
+src/
+include/
+CMakeLists.txt
+package_assignment.ps1
+test_ta_cases.bat
+COVER_PAGE.md
