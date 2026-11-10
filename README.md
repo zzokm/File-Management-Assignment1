@@ -1,18 +1,37 @@
+# ASSIGNMENT COVER PAGE & PROJECT README
 # Healthcare Management System (IS321)
+
 **Course:** File Management and Processing (IS321)  
 **Academic Year:** 2026 / 2027  
-**Assignment:** Assignment 1 – Healthcare Management System  
+**Assignment:** Assignment 1 Healthcare Management System  
+**Submission Weight:** 10 Points  
+**Teaching Assistant (TA) Name:** Nesma  
+**Lab / Section:** S1, S2  
 
 ---
 
-## 👥 Team Members
+## 👥 Team Information & Member Roles (Group of 4)
 
-| # | Student Name | Student ID |
-|:---:|:---|:---:|
-| **1** | Yehia Hassan Abdelmoaty | 20242447 |
-| **2** | Youssef Ramy Hassan | 20240689 |
-| **3** | Abdullah Mohamed Raafat | 20240328 |
-| **4** | Mahmoud Sherif Farouk | 20240552 |
+| # | Student Name | Student ID | Assigned Role | Core Responsibilities |
+|:---:|:---|:---:|:---:|:---|
+| **1** | Yehia Hassan Abdelmoaty | 20242447 | **Role 1** | Storage Engine & Space Reclamation (Avail List) |
+| **2** | Mahmoud Sherif Farouk | 20240552 | **Role 2** | Indexing Engine & Inverted Lists (Binary Search & Late Binding) |
+| **3** | Abdullah Mohamed Raafat | 20240328 | **Role 3** | Business Logic, CRUD Operations & Data Integrity |
+| **4** | Youssef Ramy Hassan | 20240689 | **Role 4** | Query Engine (SQL Parser, Set Intersection) & Console Interface |
+
+---
+
+## 📋 Submission Checklist
+
+- [ ] Fixed-length binary records for Doctors (95 bytes) and Appointments (60 bytes)
+- [ ] 4-byte header representing AVAIL LIST head offset (`-1` when empty)
+- [ ] Logical deletion marking with `'*'` and Avail List chaining
+- [ ] Primary indexes sorted ascending with Binary Search
+- [ ] Primary key update using array shifting
+- [ ] Secondary indexes using linked list on a separate file technique (Folk & Zoellick Figure 7.13)
+- [ ] SQL-like query engine supporting single and compound (`AND`) queries
+- [ ] Initial dataset of 5 Doctors and 10 Appointments pre-populated
+- [ ] All team members prepared for oral discussion
 
 ---
 
@@ -43,16 +62,16 @@ This project implements an indexed **Healthcare Management System** in C++ desig
 
 ```mermaid
 flowchart TD
-    M1["Role 1: Storage Engine & Space Reclamation"]
+    M1["Role 1: Storage Engine & Space Reclamation<br/><b>Yehia Hassan Abdelmoaty</b>"]
 
     subgraph Core ["Core Processing Layer"]
         direction LR
-        M2["Role 2: Indexing Engine & Inverted Lists"]
-        M3["Role 3: Business Logic & Data Integrity"]
+        M2["Role 2: Indexing Engine & Inverted Lists<br/><b>Mahmoud Sherif Farouk</b>"]
+        M3["Role 3: Business Logic & Data Integrity<br/><b>Abdullah Mohamed Raafat</b>"]
         M2 <--> M3
     end
 
-    M4["Role 4: Query Engine & Console Interface"]
+    M4["Role 4: Query Engine & Console Interface<br/><b>Youssef Ramy Hassan</b>"]
 
     M1 --> M2
     M1 --> M3
@@ -68,4 +87,3 @@ Detailed proposals, metrics, and assignment specifications are organized inside 
 
 * 📄 [**Team Work Division & Architecture Proposal**](docs/TEAM_WORK_DIVISION.md): Detailed 4-member modular breakdown, LOC estimates, and class structure.
 * 📄 [**Assignment Specification Sheet (PDF)**](docs/IS321_Assignment_1_Healthcare_System.pdf): The official course handout and problem requirements.
-* 📄 [**Submission Cover Page**](docs/COVER_PAGE.md): Formatted assignment cover page with team details.

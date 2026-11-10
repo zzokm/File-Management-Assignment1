@@ -25,16 +25,16 @@ This project implements an indexed **Healthcare Management System** in C++ using
 
 ```mermaid
 flowchart TD
-    M1["Role 1: Storage Engine & Space Reclamation"]
+    M1["Role 1: Storage Engine & Space Reclamation<br/><b>Yehia Hassan Abdelmoaty</b>"]
 
     subgraph Core ["Core Processing Layer"]
         direction LR
-        M2["Role 2: Indexing Engine & Inverted Lists"]
-        M3["Role 3: Business Logic & Data Integrity"]
+        M2["Role 2: Indexing Engine & Inverted Lists<br/><b>Mahmoud Sherif Farouk</b>"]
+        M3["Role 3: Business Logic & Data Integrity<br/><b>Abdullah Mohamed Raafat</b>"]
         M2 <--> M3
     end
 
-    M4["Role 4: Query Engine & Console Interface"]
+    M4["Role 4: Query Engine & Console Interface<br/><b>Youssef Ramy Hassan</b>"]
 
     M1 --> M2
     M1 --> M3
@@ -48,11 +48,21 @@ flowchart TD
 
 The project is partitioned into 4 balanced, loosely coupled modules so each member can work independently with minimal merge conflicts.
 
+### Team Members & Role Allocation
+
+| Role | Assigned Member | Student ID | Core Responsibilities |
+|:---:|:---|:---:|:---|
+| **Role 1** | **Yehia Hassan Abdelmoaty** | 20242447 | Storage Engine & Space Reclamation (Avail List) |
+| **Role 2** | **Mahmoud Sherif Farouk** | 20240552 | Indexing Engine & Inverted Lists (Binary Search & Late Binding) |
+| **Role 3** | **Abdullah Mohamed Raafat** | 20240328 | Business Logic, CRUD Operations & Data Integrity |
+| **Role 4** | **Youssef Ramy Hassan** | 20240689 | Query Engine (SQL Parser, Set Intersection) & Console UI |
+
 ---
 
-### Role 1: Storage Engine & Space Reclamation (Avail List)
+### Role 1: Storage Engine & Space Reclamation (Avail List) — Yehia Hassan Abdelmoaty
 
 #### Metrics
+* **Assigned Member**: **Yehia Hassan Abdelmoaty** (ID: `20242447`)
 * **Grade Weight Contribution**: `~25% (2.5 / 10 Points)`
 * **Estimated Size Range**: `90 – 120 LOC`
 * **Assigned Files**:
@@ -76,9 +86,10 @@ The project is partitioned into 4 balanced, loosely coupled modules so each memb
 
 ---
 
-### Role 2: Indexing Engine & Inverted Lists
+### Role 2: Indexing Engine & Inverted Lists — Mahmoud Sherif Farouk
 
 #### Metrics
+* **Assigned Member**: **Mahmoud Sherif Farouk** (ID: `20240552`)
 * **Grade Weight Contribution**: `~25% (2.5 / 10 Points)`
 * **Estimated Size Range**: `130 – 160 LOC`
 * **Assigned Files**:
@@ -102,9 +113,10 @@ The project is partitioned into 4 balanced, loosely coupled modules so each memb
 
 ---
 
-### Role 3: Business Logic & Data Integrity
+### Role 3: Business Logic & Data Integrity — Abdullah Mohamed Raafat
 
 #### Metrics
+* **Assigned Member**: **Abdullah Mohamed Raafat** (ID: `20240328`)
 * **Grade Weight Contribution**: `~25% (2.5 / 10 Points)`
 * **Estimated Size Range**: `100 – 130 LOC`
 * **Assigned Files**:
@@ -126,9 +138,10 @@ The project is partitioned into 4 balanced, loosely coupled modules so each memb
 
 ---
 
-### Role 4: Query Engine & User Interface
+### Role 4: Query Engine & User Interface — Youssef Ramy Hassan
 
 #### Metrics
+* **Assigned Member**: **Youssef Ramy Hassan** (ID: `20240689`)
 * **Grade Weight Contribution**: `~25% (2.5 / 10 Points)`
 * **Estimated Size Range**: `90 – 120 LOC`
 * **Assigned Files**:
@@ -226,8 +239,9 @@ classDiagram
 
 ## 5. Metrics & Workload Summary Table
 
-| Metric | Role 1 (Storage) | Role 2 (Indexing) | Role 3 (Business Logic) | Role 4 (Query & UI) | Shared | Total |
+| Metric | Role 1 (Storage)<br/>Yehia Hassan | Role 2 (Indexing)<br/>Mahmoud Sherif | Role 3 (Business Logic)<br/>Abdullah Mohamed | Role 4 (Query & UI)<br/>Youssef Ramy | Shared | Total |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Assigned Member** | **Yehia Hassan Abdelmoaty**<br/>(`20242447`) | **Mahmoud Sherif Farouk**<br/>(`20240552`) | **Abdullah Mohamed Raafat**<br/>(`20240328`) | **Youssef Ramy Hassan**<br/>(`20240689`) | All Members | **4 Students** |
 | **Grade Contribution** | ~25% (2.5 pts) | ~25% (2.5 pts) | ~25% (2.5 pts) | ~25% (2.5 pts) | — | **10.0 pts** |
 | **Estimated LOC Range** | 90 – 120 | 130 – 160 | 100 – 130 | 90 – 120 | 30 – 40 | **450 – 550** |
 | **Complexity** | Medium | Medium-High | Medium | Medium | Low | **Balanced** |
