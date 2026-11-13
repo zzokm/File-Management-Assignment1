@@ -1,5 +1,6 @@
 #include "StorageEngine.h"
 #include <fstream>
+#include <filesystem>
 
 using namespace std;
 
@@ -7,6 +8,7 @@ const string StorageEngine::DOCTORS_FILE = "data/doctors.bin";
 const string StorageEngine::APPOINTMENTS_FILE = "data/appointments.bin";
 
 static void ensureInit(const string& path) {
+    filesystem::create_directories("data");
     ifstream in(path, ios::binary);
     if (!in.is_open()) {
         ofstream out(path, ios::binary);
@@ -16,6 +18,7 @@ static void ensureInit(const string& path) {
 }
 
 void StorageEngine::initStorage() {
+    filesystem::create_directories("data");
     ensureInit(DOCTORS_FILE);
     ensureInit(APPOINTMENTS_FILE);
 }

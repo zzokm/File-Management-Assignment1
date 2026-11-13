@@ -39,6 +39,7 @@ public:
     vector<string> getFromSecondary(const vector<SecondaryIndexEntry>& index, const string& invertedFileName, const string& secKey);
     void deleteFromSecondary(vector<SecondaryIndexEntry>& index, const string& invertedFileName, const string& secKey, const string& primaryKey);
     
-    // File Init
+    // File Init & Rebuild
     void initInvertedFiles();
+    void rebuild();
 };

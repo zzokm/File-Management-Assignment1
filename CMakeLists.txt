@@ -6,14 +6,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(include)
 
-# Role 1: Storage Engine (Yehia) & Shared Models
+# Core System Headers & Sources (Role 1 & Role 2)
 set(HEADERS
     include/Models.h
     include/StorageEngine.h
+    include/IndexEngine.h
 )
 
 set(SOURCES
     src/StorageEngine.cpp
+    src/IndexEngine.cpp
 )
 
 add_library(HealthcareSystem STATIC
