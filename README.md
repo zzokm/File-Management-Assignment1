@@ -87,3 +87,4 @@ Detailed proposals, metrics, and assignment specifications are organized inside 
 
 * 📄 [**Team Work Division & Architecture Proposal**](docs/TEAM_WORK_DIVISION.md): Detailed 4-member modular breakdown, LOC estimates, and class structure.
 * 📄 [**Assignment Specification Sheet (PDF)**](docs/IS321_Assignment_1_Healthcare_System.pdf): The official course handout and problem requirements.
+* 📄 [**System Testing, UI Evaluation & Validation Report**](docs/SYSTEM_TESTING_AND_VALIDATION.md): Comprehensive test matrix, real execution traces, and edge-case failure testing results.

@@ -1,0 +1,12 @@
+Course: File Management and Processing (IS321)
+Academic Year: 2026 / 2027
+Assignment: Assignment 1 - Healthcare Management System
+Submission Weight: 10 Points
+Teaching Assistant (TA): Nesma
+Lab / Section: S1, S2
+
+Team Members:
+1. Yehia Hassan Abdelmoaty - 20242447
+2. Mahmoud Sherif Farouk - 20240552
+3. Abdullah Mohamed Raafat - 20240328
+4. Youssef Ramy Hassan - 20240689
