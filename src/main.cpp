@@ -12,13 +12,6 @@ static void clearInput() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
-static string getLineInput(const string& prompt) {
-    cout << prompt;
-    string line;
-    getline(cin, line);
-    return QueryEngine::parseQuery("SELECT all FROM Doctors WHERE ID='" + line + "'").isValid ? line : line; // simple return
-}
-
 static void printMenu() {
     cout << "\n=======================================================\n";
     cout << "        HEALTHCARE MANAGEMENT SYSTEM (IS321)          \n";

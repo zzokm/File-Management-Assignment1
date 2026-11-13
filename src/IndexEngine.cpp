@@ -21,7 +21,7 @@ void IndexEngine::initInvertedFiles() {
     ensureInvertedFile(APP_DOCID_INV_FILE);
 }
 
-int IndexEngine::binarySearchPrimary(const vector<PrimaryIndexEntry>& index, const string& key) {
+int IndexEngine::binarySearchPrimary(const vector<PrimaryIndexEntry>& index, const string& key) const {
     int l = 0, r = (int)index.size() - 1;
     while (l <= r) {
         int mid = (l + r) / 2;
@@ -65,7 +65,7 @@ void IndexEngine::updatePrimaryKey(vector<PrimaryIndexEntry>& index, const strin
     insertPrimary(index, newKey, offset);
 }
 
-int IndexEngine::binarySearchSecondary(const vector<SecondaryIndexEntry>& index, const string& secKey) {
+int IndexEngine::binarySearchSecondary(const vector<SecondaryIndexEntry>& index, const string& secKey) const {
     int l = 0, r = (int)index.size() - 1;
     while (l <= r) {
         int mid = (l + r) / 2;
