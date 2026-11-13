@@ -33,6 +33,9 @@ public:
     vector<DoctorRecord> listAllDoctors() const;
     vector<AppointmentRecord> listAllAppointments() const;
 
+    IndexEngine& getIndexEngine() { return indexEngine; }
+    const IndexEngine& getIndexEngine() const { return indexEngine; }
+
 private:
     IndexEngine indexEngine;
     bool initialized;

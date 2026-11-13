@@ -12,16 +12,24 @@ set(HEADERS
     include/StorageEngine.h
     include/IndexEngine.h
     include/BusinessLogic.h
+    include/QueryEngine.h
 )
 
 set(SOURCES
     src/StorageEngine.cpp
     src/IndexEngine.cpp
     src/BusinessLogic.cpp
+    src/QueryEngine.cpp
 )
 
 add_library(HealthcareSystem STATIC
     ${SOURCES}
     ${HEADERS}
 )
+
+add_executable(HealthcareApp
+    src/main.cpp
+)
+
+target_link_libraries(HealthcareApp PRIVATE HealthcareSystem)
 
