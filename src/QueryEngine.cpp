@@ -2,7 +2,6 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <sstream>
 
 using namespace std;
 
@@ -15,40 +14,32 @@ string QueryEngine::toLower(const string& str) {
 }
 
 string QueryEngine::trimString(const string& str) {
-    size_t start = 0;
-    while (start < str.size() && (isspace((unsigned char)str[start]) || str[start] == '\0')) start++;
-    if (start >= str.size()) return "";
-    size_t end = str.size() - 1;
-    while (end > start && (isspace((unsigned char)str[end]) || str[end] == '\0')) end--;
-    return str.substr(start, end - start + 1);
+    size_t s = 0;
+    while (s < str.size() && (isspace((unsigned char)str[s]) || str[s] == '\0')) s++;
+    if (s >= str.size()) return "";
+    size_t e = str.size() - 1;
+    while (e > s && (isspace((unsigned char)str[e]) || str[e] == '\0')) e--;
+    return str.substr(s, e - s + 1);
 }
 
 string QueryEngine::extractQuotedValue(const string& str) {
     string trimmed = trimString(str);
-    if (trimmed.size() >= 2) {
-        if ((trimmed.front() == '\'' && trimmed.back() == '\'') ||
-            (trimmed.front() == '"' && trimmed.back() == '"')) {
-            return trimmed.substr(1, trimmed.size() - 2);
-        }
+    if (trimmed.size() >= 2 && ((trimmed.front() == '\'' && trimmed.back() == '\'') ||
+                                (trimmed.front() == '"' && trimmed.back() == '"'))) {
+        return trimmed.substr(1, trimmed.size() - 2);
     }
     return trimmed;
 }
 
-static size_t findKeywordOutsideQuotes(const string& str, const string& keyword, size_t startPos = 0) {
+static size_t findKeyword(const string& str, const string& keyword, size_t startPos = 0) {
     string lowerStr = QueryEngine::toLower(str);
     string lowerKw = QueryEngine::toLower(keyword);
-    bool inSingle = false;
-    bool inDouble = false;
+    bool inQuote = false;
 
     for (size_t i = startPos; i < str.size(); i++) {
-        if (str[i] == '\'' && !inDouble) inSingle = !inSingle;
-        else if (str[i] == '"' && !inSingle) inDouble = !inDouble;
-        else if (!inSingle && !inDouble) {
-            if (i + lowerKw.size() <= str.size()) {
-                if (lowerStr.substr(i, lowerKw.size()) == lowerKw) {
-                    return i;
-                }
-            }
+        if (str[i] == '\'' || str[i] == '"') inQuote = !inQuote;
+        else if (!inQuote && i + lowerKw.size() <= str.size()) {
+            if (lowerStr.substr(i, lowerKw.size()) == lowerKw) return i;
         }
     }
     return string::npos;
@@ -57,105 +48,78 @@ static size_t findKeywordOutsideQuotes(const string& str, const string& keyword,
 ParsedQuery QueryEngine::parseQuery(const string& queryString) {
     ParsedQuery pq;
     string q = trimString(queryString);
+    if (!q.empty() && q.back() == ';') q = trimString(q.substr(0, q.size() - 1));
 
-    if (!q.empty() && q.back() == ';') {
-        q.pop_back();
-        q = trimString(q);
-    }
-
-    if (q.empty()) {
-        pq.errorMessage = "Empty query string.";
-        return pq;
-    }
-
-    if (toLower(q.substr(0, 7)) != "select ") {
+    if (q.empty() || toLower(q.substr(0, 7)) != "select ") {
         pq.errorMessage = "Query must start with SELECT keyword.";
         return pq;
     }
 
-    size_t fromPos = findKeywordOutsideQuotes(q, " from ", 6);
+    size_t fromPos = findKeyword(q, " from ", 6);
     if (fromPos == string::npos) {
         pq.errorMessage = "Syntax error: missing FROM clause.";
         return pq;
     }
 
-    string selectPart = trimString(q.substr(7, fromPos - 7));
-    pq.selectField = selectPart;
+    pq.selectField = trimString(q.substr(7, fromPos - 7));
+    size_t afterFrom = fromPos + 6;
+    size_t wherePos = findKeyword(q, " where ", afterFrom);
 
-    size_t afterFrom = fromPos + 6; // length of " from "
-    size_t wherePos = findKeywordOutsideQuotes(q, " where ", afterFrom);
-
-    string tablePart;
-    if (wherePos == string::npos) {
-        tablePart = trimString(q.substr(afterFrom));
-        pq.hasWhere = false;
-    } else {
-        tablePart = trimString(q.substr(afterFrom, wherePos - afterFrom));
-        pq.hasWhere = true;
-    }
+    string tablePart = (wherePos == string::npos) ? trimString(q.substr(afterFrom))
+                                                  : trimString(q.substr(afterFrom, wherePos - afterFrom));
+    pq.hasWhere = (wherePos != string::npos);
 
     string tableLower = toLower(tablePart);
-    if (tableLower == "doctors" || tableLower == "doctor") {
-        pq.table = "doctors";
-    } else if (tableLower == "appointments" || tableLower == "appointment") {
-        pq.table = "appointments";
-    } else {
+    if (tableLower == "doctors" || tableLower == "doctor") pq.table = "doctors";
+    else if (tableLower == "appointments" || tableLower == "appointment") pq.table = "appointments";
+    else {
         pq.errorMessage = "Unknown table '" + tablePart + "'. Valid tables: Doctors, Appointments.";
         return pq;
     }
 
     if (pq.hasWhere) {
-        string wherePart = trimString(q.substr(wherePos + 7)); // length of " where "
+        string wherePart = trimString(q.substr(wherePos + 7));
         if (wherePart.empty()) {
             pq.errorMessage = "Syntax error: empty WHERE clause.";
             return pq;
         }
 
-        // Split where clause by " and "
         vector<string> condTokens;
-        size_t current = 0;
-        while (current < wherePart.size()) {
-            size_t andPos = findKeywordOutsideQuotes(wherePart, " and ", current);
+        size_t cur = 0;
+        while (cur < wherePart.size()) {
+            size_t andPos = findKeyword(wherePart, " and ", cur);
             if (andPos == string::npos) {
-                condTokens.push_back(trimString(wherePart.substr(current)));
+                condTokens.push_back(trimString(wherePart.substr(cur)));
                 break;
-            } else {
-                condTokens.push_back(trimString(wherePart.substr(current, andPos - current)));
-                current = andPos + 5; // length of " and "
             }
+            condTokens.push_back(trimString(wherePart.substr(cur, andPos - cur)));
+            cur = andPos + 5;
         }
 
         for (const string& condStr : condTokens) {
-            size_t eqPos = findKeywordOutsideQuotes(condStr, "=", 0);
+            size_t eqPos = findKeyword(condStr, "=", 0);
             if (eqPos == string::npos) {
-                pq.errorMessage = "Syntax error in condition: '" + condStr + "'. Expected format: Column = 'Value'.";
+                pq.errorMessage = "Syntax error in condition: '" + condStr + "'. Expected Column = 'Value'.";
                 return pq;
             }
 
             string rawCol = trimString(condStr.substr(0, eqPos));
             string rawVal = extractQuotedValue(condStr.substr(eqPos + 1));
             string colLower = toLower(rawCol);
-
             string normCol;
+
             if (pq.table == "doctors") {
                 if (colLower == "doctor id" || colLower == "doctorid" || colLower == "id") normCol = "Doctor ID";
                 else if (colLower == "doctor name" || colLower == "doctorname" || colLower == "name") normCol = "Doctor Name";
                 else if (colLower == "doctor specialty" || colLower == "doctorspecialty" || colLower == "specialty") normCol = "Doctor Specialty";
                 else if (colLower == "address") normCol = "Address";
-                else {
-                    pq.errorMessage = "Unknown Doctors column '" + rawCol + "'.";
-                    return pq;
-                }
+                else { pq.errorMessage = "Unknown Doctors column '" + rawCol + "'."; return pq; }
             } else {
                 if (colLower == "appointment id" || colLower == "appointmentid" || colLower == "id") normCol = "Appointment ID";
                 else if (colLower == "appointment date" || colLower == "appointmentdate" || colLower == "date") normCol = "Appointment Date";
                 else if (colLower == "doctor id" || colLower == "doctorid") normCol = "Doctor ID";
-                else {
-                    pq.errorMessage = "Unknown Appointments column '" + rawCol + "'.";
-                    return pq;
-                }
+                else { pq.errorMessage = "Unknown Appointments column '" + rawCol + "'."; return pq; }
             }
-
             pq.conditions.push_back({normCol, rawVal});
         }
     }
@@ -170,21 +134,27 @@ bool QueryEngine::executeQuery(const string& queryString) {
         cout << "\n[Query Error]: " << pq.errorMessage << "\n";
         return false;
     }
-
-    if (pq.table == "doctors") {
-        return executeDoctorQuery(pq);
-    } else {
-        return executeAppointmentQuery(pq);
-    }
+    return (pq.table == "doctors") ? executeDoctorQuery(pq) : executeAppointmentQuery(pq);
 }
 
 bool QueryEngine::executeDoctorQuery(const ParsedQuery& pq) {
     IndexEngine& ie = businessLogic.getIndexEngine();
 
+    auto fetchDocs = [&](const vector<string>& pks) {
+        vector<DoctorRecord> docs;
+        for (const string& pk : pks) {
+            int offset = ie.binarySearchPrimary(ie.docPrimary, pk);
+            if (offset != -1) {
+                DoctorRecord doc;
+                if (StorageEngine::readDoctor(offset, doc)) docs.push_back(doc);
+            }
+        }
+        return docs;
+    };
+
     if (!pq.hasWhere) {
         cout << "\n[Query Plan]: Full Table Scan on Doctors\n";
-        vector<DoctorRecord> docs = businessLogic.listAllDoctors();
-        printDoctorsTable(docs, pq.selectField);
+        printDoctorsTable(businessLogic.listAllDoctors(), pq.selectField);
         return true;
     }
 
@@ -212,17 +182,7 @@ bool QueryEngine::executeDoctorQuery(const ParsedQuery& pq) {
                 cout << "[Result]: No doctors found with Name = '" << cond.value << "'.\n";
                 return true;
             }
-            vector<DoctorRecord> docs;
-            for (const string& pk : pks) {
-                int offset = ie.binarySearchPrimary(ie.docPrimary, pk);
-                if (offset != -1) {
-                    DoctorRecord doc;
-                    if (StorageEngine::readDoctor(offset, doc)) {
-                        docs.push_back(doc);
-                    }
-                }
-            }
-            printDoctorsTable(docs, pq.selectField);
+            printDoctorsTable(fetchDocs(pks), pq.selectField);
             return true;
         } else if (cond.column == "Doctor Specialty") {
             cout << "\n[Query Plan]: Secondary Index Lookup via Inverted List for Doctor Specialty ('" << cond.value << "')\n";
@@ -232,96 +192,60 @@ bool QueryEngine::executeDoctorQuery(const ParsedQuery& pq) {
                 cout << "[Result]: No doctors found with Specialty = '" << cond.value << "'.\n";
                 return true;
             }
-            vector<DoctorRecord> docs;
-            for (const string& pk : pks) {
-                int offset = ie.binarySearchPrimary(ie.docPrimary, pk);
-                if (offset != -1) {
-                    DoctorRecord doc;
-                    if (StorageEngine::readDoctor(offset, doc)) {
-                        docs.push_back(doc);
-                    }
-                }
-            }
-            printDoctorsTable(docs, pq.selectField);
+            printDoctorsTable(fetchDocs(pks), pq.selectField);
             return true;
         } else {
-            // Address scan
             cout << "\n[Query Plan]: Linear scan on non-indexed field Address\n";
-            vector<DoctorRecord> allDocs = businessLogic.listAllDoctors();
             vector<DoctorRecord> matched;
-            for (const auto& d : allDocs) {
-                if (trim(d.address, sizeof(d.address)) == cond.value) {
-                    matched.push_back(d);
-                }
+            for (const auto& d : businessLogic.listAllDoctors()) {
+                if (trim(d.address, sizeof(d.address)) == cond.value) matched.push_back(d);
             }
             printDoctorsTable(matched, pq.selectField);
             return true;
         }
     } else if (pq.conditions.size() == 2) {
-        // Multi-Index Set Intersection (Boolean AND)
         string nameVal, specVal;
         bool hasName = false, hasSpec = false;
-
         for (const auto& c : pq.conditions) {
-            if (c.column == "Doctor Name") {
-                nameVal = c.value;
-                hasName = true;
-            } else if (c.column == "Doctor Specialty") {
-                specVal = c.value;
-                hasSpec = true;
-            }
+            if (c.column == "Doctor Name") { nameVal = c.value; hasName = true; }
+            else if (c.column == "Doctor Specialty") { specVal = c.value; hasSpec = true; }
         }
 
         if (hasName && hasSpec) {
-            cout << "\n[Query Plan]: Multi-Index Set Intersection (Boolean AND)\n";
-            cout << "  -> Step 1: Query Doctor Name Secondary Index for '" << nameVal << "'\n";
+            cout << "\n[Query Plan]: Multi-Index Set Intersection (Boolean AND)\n"
+                 << "  -> Step 1: Query Doctor Name Secondary Index for '" << nameVal << "'\n";
             vector<string> listA = ie.getFromSecondary(ie.docNameSec, ie.DOC_NAME_INV_FILE, nameVal);
             cout << "     Candidates from Doctor Name inverted list: " << listA.size() << " key(s) [";
             for (size_t i = 0; i < listA.size(); i++) cout << (i > 0 ? ", " : "") << listA[i];
-            cout << "]\n";
+            cout << "]\n  -> Step 2: Query Doctor Specialty Secondary Index for '" << specVal << "'\n";
 
-            cout << "  -> Step 2: Query Doctor Specialty Secondary Index for '" << specVal << "'\n";
             vector<string> listB = ie.getFromSecondary(ie.docSpecSec, ie.DOC_SPEC_INV_FILE, specVal);
             cout << "     Candidates from Doctor Specialty inverted list: " << listB.size() << " key(s) [";
             for (size_t i = 0; i < listB.size(); i++) cout << (i > 0 ? ", " : "") << listB[i];
             cout << "]\n";
 
-            // Mathematical Set Intersection (A ∩ B)
             sort(listA.begin(), listA.end());
             sort(listB.begin(), listB.end());
-            vector<string> intersection;
-            set_intersection(listA.begin(), listA.end(), listB.begin(), listB.end(), back_inserter(intersection));
+            vector<string> common;
+            set_intersection(listA.begin(), listA.end(), listB.begin(), listB.end(), back_inserter(common));
 
-            cout << "  -> Step 3: Compute Mathematical Set Intersection (A ∩ B)\n";
-            cout << "     Common Doctor ID(s): " << intersection.size() << " key(s) [";
-            for (size_t i = 0; i < intersection.size(); i++) cout << (i > 0 ? ", " : "") << intersection[i];
+            cout << "  -> Step 3: Compute Mathematical Set Intersection (A ∩ B)\n"
+                 << "     Common Doctor ID(s): " << common.size() << " key(s) [";
+            for (size_t i = 0; i < common.size(); i++) cout << (i > 0 ? ", " : "") << common[i];
             cout << "]\n";
 
-            if (intersection.empty()) {
+            if (common.empty()) {
                 cout << "[Result]: No doctors found matching both criteria.\n";
                 return true;
             }
 
             cout << "  -> Step 4: Retrieve records via Doctor Primary Index Binary Search\n";
-            vector<DoctorRecord> docs;
-            for (const string& pk : intersection) {
-                int offset = ie.binarySearchPrimary(ie.docPrimary, pk);
-                if (offset != -1) {
-                    DoctorRecord doc;
-                    if (StorageEngine::readDoctor(offset, doc)) {
-                        docs.push_back(doc);
-                    }
-                }
-            }
-            printDoctorsTable(docs, pq.selectField);
+            printDoctorsTable(fetchDocs(common), pq.selectField);
             return true;
-        } else {
-            cout << "\n[Query Plan]: Compound condition on unsupported combination of columns.\n";
-            return false;
         }
     }
 
-    cout << "\n[Query Error]: Unsupported condition count.\n";
+    cout << "\n[Query Error]: Unsupported query condition.\n";
     return false;
 }
 
@@ -330,8 +254,7 @@ bool QueryEngine::executeAppointmentQuery(const ParsedQuery& pq) {
 
     if (!pq.hasWhere) {
         cout << "\n[Query Plan]: Full Table Scan on Appointments\n";
-        vector<AppointmentRecord> apps = businessLogic.listAllAppointments();
-        printAppointmentsTable(apps, pq.selectField);
+        printAppointmentsTable(businessLogic.listAllAppointments(), pq.selectField);
         return true;
     }
 
@@ -350,9 +273,7 @@ bool QueryEngine::executeAppointmentQuery(const ParsedQuery& pq) {
                 int offset = ie.binarySearchPrimary(ie.appPrimary, appId);
                 if (offset != -1) {
                     AppointmentRecord app;
-                    if (StorageEngine::readAppointment(offset, app)) {
-                        apps.push_back(app);
-                    }
+                    if (StorageEngine::readAppointment(offset, app)) apps.push_back(app);
                 }
             }
             printAppointmentsTable(apps, pq.selectField);
@@ -383,44 +304,31 @@ void QueryEngine::printDoctorsTable(const vector<DoctorRecord>& docs, const stri
         cout << "\n[Result]: 0 records returned.\n";
         return;
     }
-
-    string sLower = toLower(trimString(selectField));
-    bool isAll = (sLower == "all" || sLower == "*" || sLower.empty());
+    string s = toLower(trimString(selectField));
+    bool isAll = (s == "all" || s == "*" || s.empty());
 
     if (isAll) {
-        cout << "\n+-----------------+--------------------------------+----------------------+--------------------------------+\n";
-        cout << "| " << left << setw(15) << "Doctor ID"
-             << " | " << left << setw(30) << "Doctor Name"
-             << " | " << left << setw(20) << "Specialty"
-             << " | " << left << setw(30) << "Address" << " |\n";
-        cout << "+-----------------+--------------------------------+----------------------+--------------------------------+\n";
-
+        cout << "\n+-----------------+--------------------------------+----------------------+--------------------------------+\n"
+             << "| " << left << setw(15) << "Doctor ID" << " | " << setw(30) << "Doctor Name" << " | " << setw(20) << "Specialty" << " | " << setw(30) << "Address" << " |\n"
+             << "+-----------------+--------------------------------+----------------------+--------------------------------+\n";
         for (const auto& d : docs) {
-            cout << "| " << left << setw(15) << trim(d.doctorID, sizeof(d.doctorID))
-                 << " | " << left << setw(30) << trim(d.doctorName, sizeof(d.doctorName))
-                 << " | " << left << setw(20) << trim(d.specialty, sizeof(d.specialty))
-                 << " | " << left << setw(30) << trim(d.address, sizeof(d.address)) << " |\n";
+            cout << "| " << left << setw(15) << trim(d.doctorID, 15) << " | " << setw(30) << trim(d.doctorName, 30)
+                 << " | " << setw(20) << trim(d.specialty, 20) << " | " << setw(30) << trim(d.address, 30) << " |\n";
         }
-        cout << "+-----------------+--------------------------------+----------------------+--------------------------------+\n";
-        cout << "Total Records: " << docs.size() << "\n\n";
+        cout << "+-----------------+--------------------------------+----------------------+--------------------------------+\n"
+             << "Total Records: " << docs.size() << "\n\n";
     } else {
-        // Specific column projected
-        cout << "\n+--------------------------------+\n";
-        cout << "| " << left << setw(30) << selectField << " |\n";
-        cout << "+--------------------------------+\n";
-
+        cout << "\n+--------------------------------+\n"
+             << "| " << left << setw(30) << selectField << " |\n"
+             << "+--------------------------------+\n";
         for (const auto& d : docs) {
-            string val;
-            if (sLower == "doctor name" || sLower == "name") val = trim(d.doctorName, sizeof(d.doctorName));
-            else if (sLower == "doctor id" || sLower == "id") val = trim(d.doctorID, sizeof(d.doctorID));
-            else if (sLower == "doctor specialty" || sLower == "specialty") val = trim(d.specialty, sizeof(d.specialty));
-            else if (sLower == "address") val = trim(d.address, sizeof(d.address));
-            else val = "[Unknown Field]";
-
+            string val = (s == "doctor name" || s == "name") ? trim(d.doctorName, 30)
+                       : (s == "doctor id" || s == "id") ? trim(d.doctorID, 15)
+                       : (s == "doctor specialty" || s == "specialty") ? trim(d.specialty, 20)
+                       : (s == "address") ? trim(d.address, 30) : "[Unknown Field]";
             cout << "| " << left << setw(30) << val << " |\n";
         }
-        cout << "+--------------------------------+\n";
-        cout << "Total Records: " << docs.size() << "\n\n";
+        cout << "+--------------------------------+\nTotal Records: " << docs.size() << "\n\n";
     }
 }
 
@@ -429,39 +337,29 @@ void QueryEngine::printAppointmentsTable(const vector<AppointmentRecord>& apps, 
         cout << "\n[Result]: 0 records returned.\n";
         return;
     }
-
-    string sLower = toLower(trimString(selectField));
-    bool isAll = (sLower == "all" || sLower == "*" || sLower.empty());
+    string s = toLower(trimString(selectField));
+    bool isAll = (s == "all" || s == "*" || s.empty());
 
     if (isAll) {
-        cout << "\n+-----------------+--------------------------------+-----------------+\n";
-        cout << "| " << left << setw(15) << "Appointment ID"
-             << " | " << left << setw(30) << "Appointment Date"
-             << " | " << left << setw(15) << "Doctor ID" << " |\n";
-        cout << "+-----------------+--------------------------------+-----------------+\n";
-
+        cout << "\n+-----------------+--------------------------------+-----------------+\n"
+             << "| " << left << setw(15) << "Appointment ID" << " | " << setw(30) << "Appointment Date" << " | " << setw(15) << "Doctor ID" << " |\n"
+             << "+-----------------+--------------------------------+-----------------+\n";
         for (const auto& a : apps) {
-            cout << "| " << left << setw(15) << trim(a.appointmentID, sizeof(a.appointmentID))
-                 << " | " << left << setw(30) << trim(a.appointmentDate, sizeof(a.appointmentDate))
-                 << " | " << left << setw(15) << trim(a.doctorID, sizeof(a.doctorID)) << " |\n";
+            cout << "| " << left << setw(15) << trim(a.appointmentID, 15) << " | " << setw(30) << trim(a.appointmentDate, 30)
+                 << " | " << setw(15) << trim(a.doctorID, 15) << " |\n";
         }
-        cout << "+-----------------+--------------------------------+-----------------+\n";
-        cout << "Total Records: " << apps.size() << "\n\n";
+        cout << "+-----------------+--------------------------------+-----------------+\n"
+             << "Total Records: " << apps.size() << "\n\n";
     } else {
-        cout << "\n+--------------------------------+\n";
-        cout << "| " << left << setw(30) << selectField << " |\n";
-        cout << "+--------------------------------+\n";
-
+        cout << "\n+--------------------------------+\n"
+             << "| " << left << setw(30) << selectField << " |\n"
+             << "+--------------------------------+\n";
         for (const auto& a : apps) {
-            string val;
-            if (sLower == "appointment id" || sLower == "id") val = trim(a.appointmentID, sizeof(a.appointmentID));
-            else if (sLower == "appointment date" || sLower == "date") val = trim(a.appointmentDate, sizeof(a.appointmentDate));
-            else if (sLower == "doctor id" || sLower == "doctorid") val = trim(a.doctorID, sizeof(a.doctorID));
-            else val = "[Unknown Field]";
-
+            string val = (s == "appointment id" || s == "id") ? trim(a.appointmentID, 15)
+                       : (s == "appointment date" || s == "date") ? trim(a.appointmentDate, 30)
+                       : (s == "doctor id" || s == "doctorid") ? trim(a.doctorID, 15) : "[Unknown Field]";
             cout << "| " << left << setw(30) << val << " |\n";
         }
-        cout << "+--------------------------------+\n";
-        cout << "Total Records: " << apps.size() << "\n\n";
+        cout << "+--------------------------------+\nTotal Records: " << apps.size() << "\n\n";
     }
 }

@@ -27,13 +27,13 @@ public:
     const string APP_DOCID_INV_FILE = "data/app_docid_inv.bin";
 
     // Primary Index Methods
-    int binarySearchPrimary(const vector<PrimaryIndexEntry>& index, const string& key);
+    int binarySearchPrimary(const vector<PrimaryIndexEntry>& index, const string& key) const;
     void insertPrimary(vector<PrimaryIndexEntry>& index, const string& key, int offset);
     void deletePrimary(vector<PrimaryIndexEntry>& index, const string& key);
     void updatePrimaryKey(vector<PrimaryIndexEntry>& index, const string& oldKey, const string& newKey, int offset);
 
     // Secondary Index Methods
-    int binarySearchSecondary(const vector<SecondaryIndexEntry>& index, const string& secKey);
+    int binarySearchSecondary(const vector<SecondaryIndexEntry>& index, const string& secKey) const;
     void addSecondary(vector<SecondaryIndexEntry>& index, const string& invertedFileName, const string& secKey, const string& primaryKey);
     vector<string> getFromSecondary(const vector<SecondaryIndexEntry>& index, const string& invertedFileName, const string& secKey);
     void deleteFromSecondary(vector<SecondaryIndexEntry>& index, const string& invertedFileName, const string& secKey, const string& primaryKey);

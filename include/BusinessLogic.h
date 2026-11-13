@@ -38,10 +38,4 @@ public:
 
 private:
     IndexEngine indexEngine;
-    bool initialized;
-
-    void loadIndexes();
-    static string trimKey(const string& value);
-    static long long fileSize(const string& filePath);
-    static bool fileExists(const string& filePath);
 };
