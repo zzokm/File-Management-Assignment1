@@ -42,9 +42,7 @@ if (Test-Path (Join-Path $PSScriptRoot "Cover Page.txt")) {
 } else {
     $CoverPageContent = @"
 Course: File Management and Processing (IS321)
-Academic Year: 2026 / 2027
 Assignment: Assignment 1 - Healthcare Management System
-Submission Weight: 10 Points
 Teaching Assistant (TA): Nesma
 Lab / Section: S1, S2
 
